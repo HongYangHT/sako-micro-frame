@@ -1,0 +1,11 @@
+/node_modules/**/*
+/dist/**/*
+/lib/**/*
+
+*.js
+*.png
+*.eot
+*.ttf
+*.woff
+
+.stylelintcache
