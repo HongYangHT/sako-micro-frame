@@ -3,9 +3,7 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const webpack = require('webpack')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
-// const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const { resolve } = require('path')
-const devMode = process.env.NODE_ENV !== 'production'
 const BaseConfig = require('./webpack.config.base')
 const merge = require('webpack-merge')
 const SpeedMeasurePlugin = require('speed-measure-webpack-plugin')
@@ -13,89 +11,55 @@ const CompressionWebpackPlugin = require('compression-webpack-plugin')
 
 const smp = new SpeedMeasurePlugin()
 
-console.log(process.env.NODE_ENV)
 const config = merge(BaseConfig, {
-  entry: {
-    app: './src'
-  },
+  mode: 'production',
+  entry: './src',
   output: {
     path: resolve(__dirname, '../lib'),
-    publicPath: '/',
+    publicPath: '/lib/',
     libraryTarget: 'umd',
-    filename: '[name].js',
+    filename: 'app.js',
     chunkFilename: 'js/[name].js',
-    umdNamedDefine: true
+    umdNamedDefine: true,
+    globalObject: 'this',
+    library: 'app'
   },
-  // externals: {
-  //   vue: {
-  //     root: 'Vue',
-  //     commonjs: 'vue',
-  //     commonjs2: 'vue',
-  //     amd: 'vue'
-  //   },
-  //   'vue-router': {
-  //     root: 'vue-router',
-  //     commonjs: 'vue-router',
-  //     commonjs2: 'vue-router',
-  //     amd: 'vue-router'
-  //   },
-  //   vuex: {
-  //     root: 'vuex',
-  //     commonjs: 'vuex',
-  //     commonjs2: 'vuex',
-  //     amd: 'vuex'
-  //   },
-  //   iview: {
-  //     root: 'iview',
-  //     commonjs: 'iview',
-  //     commonjs2: 'iview',
-  //     amd: 'iview'
-  //   },
-  //   axios: {
-  //     root: 'axios',
-  //     commonjs: 'axios',
-  //     commonjs2: 'axios',
-  //     amd: 'axios'
-  //   }
-  // },
+  externals: {
+    vue: {
+      root: 'Vue',
+      commonjs: 'vue',
+      commonjs2: 'vue',
+      amd: 'vue'
+    },
+    'vue-router': {
+      root: 'vue-router',
+      commonjs: 'vue-router',
+      commonjs2: 'vue-router',
+      amd: 'vue-router'
+    },
+    vuex: {
+      root: 'vuex',
+      commonjs: 'vuex',
+      commonjs2: 'vuex',
+      amd: 'vuex'
+    },
+    iview: {
+      root: 'iview',
+      commonjs: 'iview',
+      commonjs2: 'iview',
+      amd: 'iview'
+    },
+    axios: {
+      root: 'axios',
+      commonjs: 'axios',
+      commonjs2: 'axios',
+      amd: 'axios'
+    }
+  },
   optimization: {
     splitChunks: {
-      chunks: 'all',
+      // chunks: 'all',
       cacheGroups: {
-        common: {
-          test: module => {
-            return (
-              /[\\/]node_modules[\\/]/.test(module.context) &&
-              !/react|redux|prop-types/.test(module.context) &&
-              !/vue|vuex|vue-router/.test(module.context)
-            )
-          },
-          name: 'common',
-          chunks: 'initial',
-          priority: 2,
-          minChunks: 3
-        },
-        vueBase: {
-          name: 'vueBase',
-          test: module => {
-            return /vue|vuex|vue-router/.test(module.context)
-          },
-          chunks: 'initial',
-          priority: 12
-        },
-        chunkCommon: {
-          name: 'chunk-common',
-          chunks: 'async',
-          priority: 10,
-          minChunks: 3 // 最小共用次数
-        },
-        componentCommon: {
-          name: 'component-commons',
-          test: resolve('src/components'), // 可自定义拓展你的规则
-          minChunks: 2, // 最小共用次数
-          priority: 5,
-          reuseExistingChunk: true
-        },
         commonStyle: {
           name: 'commonStyle',
           test: /\.css$/,
@@ -106,7 +70,11 @@ const config = merge(BaseConfig, {
       }
     },
     minimizer: [
-      new TerserJSPlugin({}),
+      new TerserJSPlugin({
+        cache: true,
+        parallel: true,
+        sourceMap: true
+      }),
       new OptimizeCSSAssetsPlugin({}) // 压缩css
       // new UglifyJsPlugin({
       //   // 有很多可以配置
@@ -167,8 +135,8 @@ const config = merge(BaseConfig, {
       canPrint: true // 是否将插件信息打印到控制台
     }),
     new MiniCssExtractPlugin({
-      filename: devMode ? 'css/[name].css' : 'css/[name].[contenthash].css',
-      chunkFilename: devMode ? 'css/[id].css' : 'css/[name].[contenthash].css'
+      filename: 'css/[name].css',
+      chunkFilename: 'css/[name].css'
     }),
     new webpack.NamedModulesPlugin(),
     new webpack.HashedModuleIdsPlugin(),

@@ -3,25 +3,27 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const webpack = require('webpack')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
-// const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const { resolve } = require('path')
-const devMode = process.env.NODE_ENV !== 'production'
 const BaseConfig = require('./webpack.config.base')
 const merge = require('webpack-merge')
+const SpeedMeasurePlugin = require('speed-measure-webpack-plugin')
 const CompressionWebpackPlugin = require('compression-webpack-plugin')
 const BundleAnalyzer = require('webpack-bundle-analyzer')
 
+const smp = new SpeedMeasurePlugin()
+
 const config = merge(BaseConfig, {
-  entry: {
-    app: './src'
-  },
+  mode: 'production',
+  entry: './src',
   output: {
     path: resolve(__dirname, '../lib'),
-    publicPath: '/',
+    publicPath: '/lib/',
     libraryTarget: 'umd',
-    filename: '[name].js',
+    filename: 'app.js',
     chunkFilename: 'js/[name].js',
-    umdNamedDefine: true
+    umdNamedDefine: true,
+    globalObject: 'this',
+    library: 'app'
   },
   externals: {
     vue: {
@@ -57,14 +59,8 @@ const config = merge(BaseConfig, {
   },
   optimization: {
     splitChunks: {
-      chunks: 'all',
+      // chunks: 'all',
       cacheGroups: {
-        chunkCommon: {
-          name: 'chunk-common',
-          chunks: 'async',
-          priority: 10,
-          minChunks: 3 // 最小共用次数
-        },
         commonStyle: {
           name: 'commonStyle',
           test: /\.css$/,
@@ -75,7 +71,11 @@ const config = merge(BaseConfig, {
       }
     },
     minimizer: [
-      new TerserJSPlugin({}),
+      new TerserJSPlugin({
+        cache: true,
+        parallel: true,
+        sourceMap: true
+      }),
       new OptimizeCSSAssetsPlugin({}) // 压缩css
       // new UglifyJsPlugin({
       //   // 有很多可以配置
@@ -136,8 +136,8 @@ const config = merge(BaseConfig, {
       canPrint: true // 是否将插件信息打印到控制台
     }),
     new MiniCssExtractPlugin({
-      filename: devMode ? 'css/[name].css' : 'css/[name].[contenthash].css',
-      chunkFilename: devMode ? 'css/[id].css' : 'css/[name].[contenthash].css'
+      filename: 'css/[name].css',
+      chunkFilename: 'css/[name].css'
     }),
     new webpack.NamedModulesPlugin(),
     new webpack.HashedModuleIdsPlugin(),
@@ -154,4 +154,4 @@ const config = merge(BaseConfig, {
   ]
 })
 
-module.exports = config
+module.exports = smp.wrap(config)

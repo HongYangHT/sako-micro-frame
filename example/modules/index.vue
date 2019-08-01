@@ -12,12 +12,14 @@ import { Button } from 'iview'
 import { mapActions, mapState } from 'vuex'
 import PackageJson from '../../package.json'
 // import { Frame } from '../../lib/app'
-import { Frame } from '../../src'
+// import micro from '../../src'
+import micro from '../../lib/app'
+import '../../lib/css/main.css'
 
 export default {
   components: {
     [Button.name]: Button,
-    [Frame.name]: Frame
+    [micro.Frame.name]: micro.Frame
   },
   data() {
     return {
