@@ -50,7 +50,7 @@ module.exports = [
         }
       },
       {
-        loader: 'sass-loader',
+        loader: 'less-loader',
         options: {
           sourceMap: true
         }

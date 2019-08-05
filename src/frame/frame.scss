@@ -73,7 +73,7 @@ body {
       align-items: center;
 
       &name {
-        width: 120px;
+        width: 80px;
         margin-left: 5px;
       }
     }
@@ -82,6 +82,12 @@ body {
       margin: 0 14px;
       cursor: pointer;
     }
+  }
+
+  &__content {
+    margin: 20px;
+    background: #fff;
+    min-height: 260px;
   }
 
   .ivu-layout-sider {
@@ -177,6 +183,7 @@ body {
   .ivu-menu-vertical .ivu-menu-submenu-title {
     height: 52px;
     padding: 14px 17px;
+    line-height: 24px;
   }
 
   .collapsed-menu .ivu-menu-item,

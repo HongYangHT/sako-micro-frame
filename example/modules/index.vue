@@ -1,10 +1,5 @@
 <template>
-  <!-- <div class="container container-crm"> -->
-  <!-- <i-button type="primary" class="mt-1" @click="$_onNav">跳转</i-button>
-    <p>{{ $t('t.code') }}</p>
-    <p>{{ currentApp }}</p> -->
   <sako-frame></sako-frame>
-  <!-- </div> -->
 </template>
 
 <script>
@@ -12,14 +7,13 @@ import { Button } from 'iview'
 import { mapActions, mapState } from 'vuex'
 import PackageJson from '../../package.json'
 // import { Frame } from '../../lib/app'
-// import micro from '../../src'
-import micro from '../../lib/app'
-import '../../lib/css/main.css'
+import { Frame } from '../../src'
+// import '../../lib/css/main.css'
 
 export default {
   components: {
     [Button.name]: Button,
-    [micro.Frame.name]: micro.Frame
+    [Frame.name]: Frame
   },
   data() {
     return {

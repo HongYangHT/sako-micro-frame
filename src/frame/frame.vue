@@ -1,33 +1,32 @@
 <template>
   <div :class="prefix">
-    <i-layout>
-      <i-header :class="prefix + '__header'">
-        <i-menu mode="horizontal" theme="primary" active-name="1">
+    <Layout>
+      <Header :class="prefix + '__header'">
+        <Menu mode="horizontal" theme="primary" :active-name="topActiveName">
           <div :class="logoScale" @click="$_onClickLogoNavTo">
             <img :src="logoSrc" :class="imgScale" />
           </div>
-          <i-icon
-            :class="rotateIcon"
-            type="md-menu"
-            size="24"
-            @click.native="collapsedSider"
-          ></i-icon>
+          <Icon :class="rotateIcon" type="md-menu" size="24" @click.native="collapsedSider"></Icon>
           <div :class="prefix + '__nav'">
-            <i-menu-item name="1"> <i-icon type="ios-navigate"></i-icon>Item 1 </i-menu-item>
-            <i-menu-item name="2"> <i-icon type="ios-keypad"></i-icon>Item 2 </i-menu-item>
-            <i-menu-item name="3"> <i-icon type="ios-analytics"></i-icon>Item 3 </i-menu-item>
-            <i-menu-item name="4"> <i-icon type="ios-paper"></i-icon>Item 4 </i-menu-item>
+            <template v-for="item in functionTree">
+              <MenuItem :name="item.functionName" :key="item.functionName">
+                <Icon v-if="item.icon" :type="item.icon"></Icon>{{ item.functionName }}</MenuItem
+              >
+            </template>
+            <!-- <MenuItem name="2"> <Icon type="ios-keypad"></Icon>Item 2 </MenuItem>
+            <MenuItem name="3"> <Icon type="ios-analytics"></Icon>Item 3 </MenuItem>
+            <MenuItem name="4"> <Icon type="ios-paper"></Icon>Item 4 </MenuItem> -->
           </div>
-        </i-menu>
+        </Menu>
         <div :class="prefix + '__slot'"></div>
         <div :class="prefix + '__right'">
           <div :class="[prefix + '__right__install', 'cursor-pointer']">
-            <i-icon type="ios-link" size="20"></i-icon>
+            <Icon type="ios-link" size="20"></Icon>
             <span>未安装</span>
           </div>
           <div :class="[prefix + '__right__user', 'm-2']">
-            <i-icon type="md-contact" size="20"></i-icon>
-            <i-poptip width="250" trigger="hover" placement="bottom-end">
+            <Icon type="md-contact" size="20"></Icon>
+            <Poptip width="250" trigger="hover" placement="bottom-end">
               <span
                 :class="[
                   'text-truncate',
@@ -36,7 +35,7 @@
                   prefix + '__right__username'
                 ]"
               >
-                {{ userInfo.name }}
+                {{ loginInfo.user && loginInfo.user.nickName }}
               </span>
               <template slot="title">
                 <div class="d-flex">
@@ -47,10 +46,10 @@
               <template slot="content">
                 <span class="c-gray">敬请期待...</span>
               </template>
-            </i-poptip>
+            </Poptip>
           </div>
-          <i-poptip width="250" trigger="hover" placement="bottom-end">
-            <i-icon class="m-2" type="logo-buffer" size="20"></i-icon>
+          <Poptip width="250" trigger="hover" placement="bottom-end">
+            <Icon class="m-2" type="logo-buffer" size="20"></Icon>
             <template slot="title">
               <div class="d-flex">
                 <span class="c-gray">常用菜单</span>
@@ -60,9 +59,9 @@
             <template slot="content">
               <span class="c-gray">敬请期待...</span>
             </template>
-          </i-poptip>
-          <i-poptip width="250" trigger="hover" placement="bottom-end">
-            <i-icon class="m-2" type="md-desktop" size="20"></i-icon>
+          </Poptip>
+          <Poptip width="250" trigger="hover" placement="bottom-end">
+            <Icon class="m-2" type="md-desktop" size="20"></Icon>
             <template slot="title">
               <div class="d-flex">
                 <span class="c-gray">消息中心</span>
@@ -71,9 +70,9 @@
             <template slot="content">
               <span class="c-gray">敬请期待...</span>
             </template>
-          </i-poptip>
-          <i-poptip width="250" trigger="hover" placement="bottom-end">
-            <i-icon class="m-2" type="md-notifications" size="20"></i-icon>
+          </Poptip>
+          <Poptip width="250" trigger="hover" placement="bottom-end">
+            <Icon class="m-2" type="md-notifications" size="20"></Icon>
             <template slot="title">
               <div class="d-flex">
                 <span class="c-gray">我的工作台</span>
@@ -82,14 +81,14 @@
             <template slot="content">
               <span class="c-gray">敬请期待...</span>
             </template>
-          </i-poptip>
-          <i-tooltip content="退出登录">
-            <i-icon class="m-2" type="md-power" size="20"></i-icon>
-          </i-tooltip>
+          </Poptip>
+          <Tooltip content="退出登录">
+            <Icon class="m-2" type="md-power" size="20"></Icon>
+          </Tooltip>
         </div>
-      </i-header>
-      <i-layout>
-        <i-sider
+      </Header>
+      <Layout>
+        <Sider
           ref="side"
           hide-trigger
           accordion
@@ -98,159 +97,204 @@
           :collapsed-width="64"
           v-model="isCollapsed"
         >
-          <i-menu
-            active-name="1-2"
+          <Menu
+            :active-name="menuActiveName"
             theme="light"
             width="auto"
             accordion
-            :open-names="['1']"
+            :open-names="menuOpenNames"
             :class="menuitemClasses"
           >
-            <i-submenu name="1">
+            <template v-for="item in subList">
+              <Submenu
+                :key="item.functionName"
+                :name="item.functionName"
+                v-if="item.childFuncList && item.childFuncList.length"
+              >
+                <template slot="title">
+                  <Tooltip
+                    class="menu__tooltip"
+                    :content="item.functionName"
+                    placement="right"
+                    :disabled="!isCollapsed"
+                  >
+                    <Icon :type="item.icon" v-if="item.icon"></Icon>
+                    <span>{{ item.functionName }}</span>
+                  </Tooltip>
+                </template>
+                <MenuItem
+                  v-for="child in item.childFuncList"
+                  :name="child.functionName"
+                  :key="child.functionName"
+                >
+                  <Tooltip
+                    class="menu__tooltip"
+                    :content="child.functionName"
+                    placement="right"
+                    :disabled="!isCollapsed"
+                  >
+                    <Icon :type="child.icon" v-if="child.icon"></Icon>
+                    <span>{{ child.functionName }}</span>
+                  </Tooltip>
+                </MenuItem>
+              </Submenu>
+              <MenuItem :key="item.functionName" v-else>
+                <Tooltip
+                  class="menu__tooltip"
+                  :content="item.functionName"
+                  placement="right"
+                  :disabled="!isCollapsed"
+                >
+                  <Icon :type="item.icon" v-if="item.icon"></Icon>
+                  <span>{{ item.functionName }}</span>
+                </Tooltip>
+              </MenuItem>
+            </template>
+            <!-- <Submenu name="1">
               <template slot="title">
-                <i-tooltip
+                <Tooltip
                   class="menu__tooltip"
                   content="内容管理"
                   placement="right"
                   :disabled="!isCollapsed"
                 >
-                  <i-icon type="ios-paper"></i-icon>
+                  <Icon type="ios-paper"></Icon>
                   <span>内容管理</span>
-                </i-tooltip>
+                </Tooltip>
               </template>
-              <i-menu-item name="1-1">
-                <i-tooltip
+              <MenuItem name="1-1">
+                <Tooltip
                   class="menu__tooltip"
                   content="Option 1"
                   placement="right"
                   :disabled="!isCollapsed"
                 >
-                  <i-icon type="ios-navigate"></i-icon>
+                  <Icon type="ios-navigate"></Icon>
                   <span>Option 1</span>
-                </i-tooltip>
-              </i-menu-item>
-              <i-menu-item name="1-2">
-                <i-tooltip
+                </Tooltip>
+              </MenuItem>
+              <MenuItem name="1-2">
+                <Tooltip
                   class="menu__tooltip"
                   content="Option 2"
                   placement="right"
                   :disabled="!isCollapsed"
                 >
-                  <i-icon type="ios-search"></i-icon>
+                  <Icon type="ios-search"></Icon>
                   <span>Option 2</span>
-                </i-tooltip>
-              </i-menu-item>
-              <i-menu-item name="1-3">
-                <i-tooltip
+                </Tooltip>
+              </MenuItem>
+              <MenuItem name="1-3">
+                <Tooltip
                   class="menu__tooltip"
                   content="Option 3"
                   placement="right"
                   :disabled="!isCollapsed"
                 >
-                  <i-icon type="ios-settings"></i-icon>
+                  <Icon type="ios-settings"></Icon>
                   <span>Option 3</span>
-                </i-tooltip>
-              </i-menu-item>
-            </i-submenu>
-            <i-submenu name="2">
+                </Tooltip>
+              </MenuItem>
+            </Submenu> -->
+            <!-- <Submenu name="2">
               <template slot="title">
-                <i-tooltip
+                <Tooltip
                   class="menu__tooltip"
                   content="内容管理"
                   placement="right"
                   :disabled="!isCollapsed"
                 >
-                  <i-icon type="ios-paper"></i-icon>
+                  <Icon type="ios-paper"></Icon>
                   <span>内容管理</span>
-                </i-tooltip>
+                </Tooltip>
               </template>
-              <i-menu-item name="2-1">
-                <i-tooltip
+              <MenuItem name="2-1">
+                <tooltip
                   class="menu__tooltip"
                   content="Option 1"
                   placement="right"
                   :disabled="!isCollapsed"
                 >
-                  <i-icon type="ios-navigate"></i-icon>
+                  <Icon type="ios-navigate"></Icon>
                   <span>Option 1</span>
-                </i-tooltip>
-              </i-menu-item>
-              <i-menu-item name="2-2">
-                <i-tooltip
+                </tooltip>
+              </MenuItem>
+              <MenuItem name="2-2">
+                <Tooltip
                   class="menu__tooltip"
                   content="Option 2"
                   placement="right"
                   :disabled="!isCollapsed"
                 >
-                  <i-icon type="ios-search"></i-icon>
+                  <Icon type="ios-search"></Icon>
                   <span>Option 2</span>
-                </i-tooltip>
-              </i-menu-item>
-              <i-menu-item name="2-3">
-                <i-tooltip
+                </Tooltip>
+              </MenuItem>
+              <MenuItem name="2-3">
+                <Tooltip
                   class="menu__tooltip"
                   content="Option 3"
                   placement="right"
                   :disabled="!isCollapsed"
                 >
-                  <i-icon type="ios-settings"></i-icon>
+                  <Icon type="ios-settings"></Icon>
                   <span>Option 3</span>
-                </i-tooltip>
-              </i-menu-item>
-            </i-submenu>
-            <i-submenu name="3">
+                </Tooltip>
+              </MenuItem>
+            </Submenu> -->
+            <!-- <Submenu name="3">
               <template slot="title">
-                <i-tooltip
+                <Tooltip
                   class="menu__tooltip"
                   content="内容管理"
                   placement="right"
                   :disabled="!isCollapsed"
                 >
-                  <i-icon type="ios-paper"></i-icon>
+                  <Icon type="ios-paper"></Icon>
                   <span>内容管理</span>
-                </i-tooltip>
+                </Tooltip>
               </template>
-              <i-menu-item name="3-1">
-                <i-tooltip
+              <MenuItem name="3-1">
+                <Tooltip
                   class="menu__tooltip"
                   content="Option 1"
                   placement="right"
                   :disabled="!isCollapsed"
                 >
-                  <i-icon type="ios-navigate"></i-icon>
+                  <Icon type="ios-navigate"></Icon>
                   <span>Option 1</span>
-                </i-tooltip>
-              </i-menu-item>
-              <i-menu-item name="3-2">
-                <i-tooltip
+                </Tooltip>
+              </MenuItem>
+              <MenuItem name="3-2">
+                <Tooltip
                   class="menu__tooltip"
                   content="Option 2"
                   placement="right"
                   :disabled="!isCollapsed"
                 >
-                  <i-icon type="ios-search"></i-icon>
+                  <Icon type="ios-search"></Icon>
                   <span>Option 2</span>
-                </i-tooltip>
-              </i-menu-item>
-              <i-menu-item name="3-3">
-                <i-tooltip
+                </Tooltip>
+              </MenuItem>
+              <MenuItem name="3-3">
+                <Tooltip
                   class="menu__tooltip"
                   content="Option 3"
                   placement="right"
                   :disabled="!isCollapsed"
                 >
-                  <i-icon type="ios-settings"></i-icon>
+                  <Icon type="ios-settings"></Icon>
                   <span>Option 3</span>
-                </i-tooltip>
-              </i-menu-item>
-            </i-submenu>
-          </i-menu>
-        </i-sider>
-        <i-content :style="{ margin: '20px', background: '#fff', minHeight: '260px' }">
+                </Tooltip>
+              </MenuItem>
+            </Submenu> -->
+          </Menu>
+        </Sider>
+        <Content :class="prefix + '__content'">
           <router-view></router-view>
-        </i-content>
-      </i-layout>
-    </i-layout>
+        </Content>
+      </Layout>
+    </Layout>
   </div>
 </template>
 
@@ -274,16 +318,16 @@ const PREFIX = 'sako-frame'
 export default {
   name: 'SakoFrame',
   components: {
-    [Layout.name]: Layout,
-    [Header.name]: Header,
-    [Menu.name]: Menu,
-    [MenuItem.name]: MenuItem,
-    [Icon.name]: Icon,
-    [Sider.name]: Sider,
-    [Submenu.name]: Submenu,
-    [Tooltip.name]: Tooltip,
-    [Content.name]: Content,
-    [Poptip.name]: Poptip
+    Layout,
+    Header,
+    Menu,
+    MenuItem,
+    Icon,
+    Sider,
+    Submenu,
+    Tooltip,
+    Content,
+    Poptip
   },
   props: {
     // logo 路由
@@ -316,15 +360,24 @@ export default {
     },
     singleSpa: {
       type: Object
+    },
+    functionTree: {
+      type: Array
+    },
+    subList: {
+      type: Array
+    },
+    loginInfo: {
+      type: Object
     }
   },
   data() {
     return {
       prefix: PREFIX,
       isCollapsed: false,
-      userInfo: {
-        name: 'm18969136460@163.com'
-      }
+      topActiveName: null,
+      menuOpenNames: [],
+      menuActiveName: null
     }
   },
   computed: {
@@ -349,6 +402,20 @@ export default {
     rotateIcon() {
       return ['menu-icon', this.isCollapsed ? 'rotate-icon' : '']
     }
+  },
+  mounted() {
+    this.topActiveName =
+      (this.functionTree && this.functionTree.length && this.functionTree[0].functionName) || ''
+    this.menuOpenNames = [
+      (this.subList && this.subList.length && this.subList[0].functionName) || ''
+    ]
+    this.menuActiveName =
+      (this.subList &&
+        this.subList.length &&
+        this.subList[0].childFuncList &&
+        this.subList[0].childFuncList.length &&
+        this.subList[0].childFuncList[0].functionName) ||
+      ''
   },
   methods: {
     $_onClickLogoNavTo() {
