@@ -35,7 +35,10 @@
                   prefix + '__right__username'
                 ]"
               >
-                {{ loginInfo.user && loginInfo.user.nickName }}
+                {{
+                  (loginInfo.user && loginInfo.user.nickName) ||
+                    (loginInfo.user && loginInfo.user.realName)
+                }}
               </span>
               <template slot="title">
                 <div class="d-flex">
@@ -61,7 +64,7 @@
             </template>
           </Poptip>
           <Poptip width="250" trigger="hover" placement="bottom-end">
-            <Icon class="m-2" type="md-desktop" size="20"></Icon>
+            <Icon class="m-2" type="md-notifications" size="20"></Icon>
             <template slot="title">
               <div class="d-flex">
                 <span class="c-gray">消息中心</span>
@@ -72,7 +75,10 @@
             </template>
           </Poptip>
           <Poptip width="250" trigger="hover" placement="bottom-end">
-            <Icon class="m-2" type="md-notifications" size="20"></Icon>
+            <Badge :count="totalTask" :overflow-count="99" :offset="[18, 10]" v-if="totalTask">
+              <Icon class="m-2" type="md-desktop" size="20"></Icon>
+            </Badge>
+            <Icon class="m-2" type="md-desktop" size="20" v-else></Icon>
             <template slot="title">
               <div class="d-flex">
                 <span class="c-gray">我的工作台</span>
@@ -83,7 +89,7 @@
             </template>
           </Poptip>
           <Tooltip content="退出登录">
-            <Icon class="m-2" type="md-power" size="20"></Icon>
+            <Icon class="m-2" type="md-power" size="20" @click="$_onLogout"></Icon>
           </Tooltip>
         </div>
       </Header>
@@ -309,7 +315,9 @@ import {
   Submenu,
   Tooltip,
   Content,
-  Poptip
+  Poptip,
+  Message,
+  Badge
 } from 'iview'
 import defaultImg from './asset/logo.png'
 import defaultImgMin from './asset/logo-min.png'
@@ -327,7 +335,8 @@ export default {
     Submenu,
     Tooltip,
     Content,
-    Poptip
+    Poptip,
+    Badge
   },
   props: {
     // logo 路由
@@ -351,7 +360,7 @@ export default {
     },
     // 请求实例
     instance: {
-      type: Function
+      type: Object
     },
     // 相关登录的请求设置
     authorization: {
@@ -377,7 +386,9 @@ export default {
       isCollapsed: false,
       topActiveName: null,
       menuOpenNames: [],
-      menuActiveName: null
+      menuActiveName: null,
+      tasks: [],
+      totalTask: 0
     }
   },
   computed: {
@@ -416,6 +427,7 @@ export default {
         this.subList[0].childFuncList.length &&
         this.subList[0].childFuncList[0].functionName) ||
       ''
+    this.$_getTask()
   },
   methods: {
     $_onClickLogoNavTo() {
@@ -423,6 +435,40 @@ export default {
     },
     collapsedSider() {
       this.$refs.side.toggleCollapse()
+    },
+    $_onLogout() {
+      this.instance && this.instance.loginService
+      this.instance.loginService
+        .doLogout()
+        .then(result => {
+          if (result && result.data && result.data.success) {
+            this.singleSpa.navigateToUrl('/saas-etcloud-login')
+          }
+        })
+        .catch(error => {
+          Message.error((error && error.message) || error)
+        })
+      this.$emit('frame-logout', {
+        loginInfo: this.loginInfo
+      })
+    },
+    $_getTask() {
+      this.instance &&
+        this.instance.workFlowService &&
+        this.instance.workFlowService
+          .getTask()
+          .then(result => {
+            if (result && result.data && result.data.success) {
+              this.tasks = result.data.value || []
+              this.totalTask = 0
+              this.tasks.forEach(element => {
+                this.totalTask += element.taskCount
+              })
+            }
+          })
+          .catch(error => {
+            Message.error((error && error.message) || error)
+          })
     }
   }
 }
