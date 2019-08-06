@@ -1,0 +1,10 @@
+// 因为更新的是登录相关信息，所以 APP_NAMESPACE 可以写死
+export const APP_NAMESPACE = 'saas-etcloud-login'
+export const APP_COMMON_NAMESPACE = 'sako-common'
+export const APP_TOKEN = APP_COMMON_NAMESPACE + '-token'
+export const APP_LOGIN_INFO = APP_COMMON_NAMESPACE + '-login-info'
+export const APP_FUNCTION_LIST = APP_COMMON_NAMESPACE + '-function-list'
+export const APP_PAGE_LIST = APP_COMMON_NAMESPACE + '-page-list'
+export const APP_SUB_LIST = APP_COMMON_NAMESPACE + '-sub-list'
+export const APP_FUNCTION_TREE = APP_COMMON_NAMESPACE + '-function-tree'
+export const APP_SOAP = APP_COMMON_NAMESPACE + '-soap'

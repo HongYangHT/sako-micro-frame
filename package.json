@@ -1,6 +1,6 @@
 {
   "name": "sako-micro-frame",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "webpack config for vuejs",
   "main": "lib/app.js",
   "scripts": {
@@ -120,6 +120,7 @@
   "dependencies": {
     "axios": "^0.19.0",
     "core-js": "^3.1.4",
+    "date-format": "^2.1.0",
     "eslint-loader": "^2.2.1",
     "iview": "^3.4.2",
     "normalize.css": "^8.0.1",

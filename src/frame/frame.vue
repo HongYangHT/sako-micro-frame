@@ -13,9 +13,6 @@
                 <Icon v-if="item.icon" :type="item.icon"></Icon>{{ item.functionName }}</MenuItem
               >
             </template>
-            <!-- <MenuItem name="2"> <Icon type="ios-keypad"></Icon>Item 2 </MenuItem>
-            <MenuItem name="3"> <Icon type="ios-analytics"></Icon>Item 3 </MenuItem>
-            <MenuItem name="4"> <Icon type="ios-paper"></Icon>Item 4 </MenuItem> -->
           </div>
         </Menu>
         <div :class="prefix + '__slot'"></div>
@@ -26,7 +23,7 @@
           </div>
           <div :class="[prefix + '__right__user', 'm-2']">
             <Icon type="md-contact" size="20"></Icon>
-            <Poptip width="250" trigger="hover" placement="bottom-end">
+            <Poptip width="250" trigger="click" placement="bottom-end">
               <span
                 :class="[
                   'text-truncate',
@@ -43,11 +40,35 @@
               <template slot="title">
                 <div class="d-flex">
                   <span class="c-gray">帐号信息</span>
-                  <span class="ml-auto c-primary cursor-pointer">修改密码</span>
+                  <span class="ml-auto c-primary cursor-pointer" @click="$_onChangePassword"
+                    >修改密码</span
+                  >
                 </div>
               </template>
               <template slot="content">
-                <span class="c-gray">敬请期待...</span>
+                <!-- <span class="c-gray">敬请期待...</span> -->
+                <Form :label-width="80" :class="prefix + '__form'">
+                  <FormItem label="所属机构：">{{
+                    loginInfo && loginInfo.user && loginInfo.user.orgOwnershipName
+                  }}</FormItem>
+                  <FormItem label="当前操作机构：">
+                    <Select v-model="oparator" @on-change="$_onChangeOparator" transfer>
+                      <Option
+                        v-for="item in loginInfo.orgList"
+                        :key="item.orgId"
+                        :value="item.orgId"
+                      >
+                        {{ item.orgName }}
+                      </Option>
+                    </Select>
+                  </FormItem>
+                  <FormItem label="当前所有税号：">{{
+                    loginInfo && loginInfo.sale && loginInfo.sale.saleCreditCode
+                  }}</FormItem>
+                  <FormItem label="当前开票方式：">{{
+                    loginInfo && loginInfo.sale && loginInfo.sale.taxDiskTypeName
+                  }}</FormItem>
+                </Form>
               </template>
             </Poptip>
           </div>
@@ -56,14 +77,31 @@
             <template slot="title">
               <div class="d-flex">
                 <span class="c-gray">常用菜单</span>
-                <span class="ml-auto c-primary cursor-pointer">去设置</span>
+                <span class="ml-auto c-primary cursor-pointer" @click="$_onSetCustomizedMenu"
+                  >去设置</span
+                >
               </div>
             </template>
             <template slot="content">
-              <span class="c-gray">敬请期待...</span>
+              <template v-if="customizedMenu && customizedMenu.length">
+                <Tag
+                  v-for="(item, index) in customizedMenu"
+                  :key="item.functionId"
+                  :color="$_setTagColor(index)"
+                  @click="$_onNavToMenu(item)"
+                >
+                  {{ item.functionName }}
+                </Tag>
+              </template>
+              <div class="c-gray d-flex" v-else>
+                暂未设置常用菜单
+              </div>
             </template>
           </Poptip>
           <Poptip width="250" trigger="hover" placement="bottom-end">
+            <Badge :count="totalNotice" :overflow-count="99" :offset="[18, 10]" v-if="totalNotice">
+              <Icon class="m-2" type="md-notifications" size="20"></Icon>
+            </Badge>
             <Icon class="m-2" type="md-notifications" size="20"></Icon>
             <template slot="title">
               <div class="d-flex">
@@ -71,7 +109,25 @@
               </div>
             </template>
             <template slot="content">
-              <span class="c-gray">敬请期待...</span>
+              <template v-if="notices && notices.length">
+                <div
+                  class="c-gray d-flex"
+                  :class="prefix + '__desktop'"
+                  v-for="item in notices"
+                  :key="item.noticeId"
+                  @click="$_onNoticeItem(item)"
+                >
+                  <div class="text-ellipsis" :class="prefix + '__desktop__item'">
+                    {{ item.noticeTitle }}
+                  </div>
+                  <div class="ml-auto" :class="prefix + '__desktop__item__count'">
+                    ({{ item.createTime | format('yyyy:MM:dd hh:mm:ss') }})
+                  </div>
+                </div>
+              </template>
+              <div class="c-gray d-flex" v-else>
+                暂无待处理消息
+              </div>
             </template>
           </Poptip>
           <Poptip width="250" trigger="hover" placement="bottom-end">
@@ -85,7 +141,25 @@
               </div>
             </template>
             <template slot="content">
-              <span class="c-gray">敬请期待...</span>
+              <template v-if="tasks && tasks.length">
+                <div
+                  class="c-gray d-flex"
+                  :class="prefix + '__desktop'"
+                  v-for="item in tasks"
+                  :key="item.approveCode"
+                  @click="$_onDesktopItem(item)"
+                >
+                  <div class="text-ellipsis" :class="prefix + '__desktop__item'">
+                    {{ item.approveName }}
+                  </div>
+                  <div class="ml-auto" :class="prefix + '__desktop__item__count'">
+                    ({{ item.taskCount }})
+                  </div>
+                </div>
+              </template>
+              <div class="c-gray d-flex" v-else>
+                暂无待处理信息
+              </div>
             </template>
           </Poptip>
           <Tooltip content="退出登录">
@@ -156,144 +230,6 @@
                 </Tooltip>
               </MenuItem>
             </template>
-            <!-- <Submenu name="1">
-              <template slot="title">
-                <Tooltip
-                  class="menu__tooltip"
-                  content="内容管理"
-                  placement="right"
-                  :disabled="!isCollapsed"
-                >
-                  <Icon type="ios-paper"></Icon>
-                  <span>内容管理</span>
-                </Tooltip>
-              </template>
-              <MenuItem name="1-1">
-                <Tooltip
-                  class="menu__tooltip"
-                  content="Option 1"
-                  placement="right"
-                  :disabled="!isCollapsed"
-                >
-                  <Icon type="ios-navigate"></Icon>
-                  <span>Option 1</span>
-                </Tooltip>
-              </MenuItem>
-              <MenuItem name="1-2">
-                <Tooltip
-                  class="menu__tooltip"
-                  content="Option 2"
-                  placement="right"
-                  :disabled="!isCollapsed"
-                >
-                  <Icon type="ios-search"></Icon>
-                  <span>Option 2</span>
-                </Tooltip>
-              </MenuItem>
-              <MenuItem name="1-3">
-                <Tooltip
-                  class="menu__tooltip"
-                  content="Option 3"
-                  placement="right"
-                  :disabled="!isCollapsed"
-                >
-                  <Icon type="ios-settings"></Icon>
-                  <span>Option 3</span>
-                </Tooltip>
-              </MenuItem>
-            </Submenu> -->
-            <!-- <Submenu name="2">
-              <template slot="title">
-                <Tooltip
-                  class="menu__tooltip"
-                  content="内容管理"
-                  placement="right"
-                  :disabled="!isCollapsed"
-                >
-                  <Icon type="ios-paper"></Icon>
-                  <span>内容管理</span>
-                </Tooltip>
-              </template>
-              <MenuItem name="2-1">
-                <tooltip
-                  class="menu__tooltip"
-                  content="Option 1"
-                  placement="right"
-                  :disabled="!isCollapsed"
-                >
-                  <Icon type="ios-navigate"></Icon>
-                  <span>Option 1</span>
-                </tooltip>
-              </MenuItem>
-              <MenuItem name="2-2">
-                <Tooltip
-                  class="menu__tooltip"
-                  content="Option 2"
-                  placement="right"
-                  :disabled="!isCollapsed"
-                >
-                  <Icon type="ios-search"></Icon>
-                  <span>Option 2</span>
-                </Tooltip>
-              </MenuItem>
-              <MenuItem name="2-3">
-                <Tooltip
-                  class="menu__tooltip"
-                  content="Option 3"
-                  placement="right"
-                  :disabled="!isCollapsed"
-                >
-                  <Icon type="ios-settings"></Icon>
-                  <span>Option 3</span>
-                </Tooltip>
-              </MenuItem>
-            </Submenu> -->
-            <!-- <Submenu name="3">
-              <template slot="title">
-                <Tooltip
-                  class="menu__tooltip"
-                  content="内容管理"
-                  placement="right"
-                  :disabled="!isCollapsed"
-                >
-                  <Icon type="ios-paper"></Icon>
-                  <span>内容管理</span>
-                </Tooltip>
-              </template>
-              <MenuItem name="3-1">
-                <Tooltip
-                  class="menu__tooltip"
-                  content="Option 1"
-                  placement="right"
-                  :disabled="!isCollapsed"
-                >
-                  <Icon type="ios-navigate"></Icon>
-                  <span>Option 1</span>
-                </Tooltip>
-              </MenuItem>
-              <MenuItem name="3-2">
-                <Tooltip
-                  class="menu__tooltip"
-                  content="Option 2"
-                  placement="right"
-                  :disabled="!isCollapsed"
-                >
-                  <Icon type="ios-search"></Icon>
-                  <span>Option 2</span>
-                </Tooltip>
-              </MenuItem>
-              <MenuItem name="3-3">
-                <Tooltip
-                  class="menu__tooltip"
-                  content="Option 3"
-                  placement="right"
-                  :disabled="!isCollapsed"
-                >
-                  <Icon type="ios-settings"></Icon>
-                  <span>Option 3</span>
-                </Tooltip>
-              </MenuItem>
-            </Submenu> -->
           </Menu>
         </Sider>
         <Content :class="prefix + '__content'">
@@ -317,10 +253,34 @@ import {
   Content,
   Poptip,
   Message,
-  Badge
+  Badge,
+  Form,
+  FormItem,
+  Select,
+  Option,
+  Tag
 } from 'iview'
 import defaultImg from './asset/logo.png'
 import defaultImgMin from './asset/logo-min.png'
+import format from 'date-format'
+import { localStore } from '../utils/storage'
+import {
+  APP_NAMESPACE,
+  APP_LOGIN_INFO,
+  APP_FUNCTION_LIST,
+  APP_PAGE_LIST,
+  APP_SUB_LIST,
+  APP_FUNCTION_TREE,
+  APP_TOKEN
+  // APP_SOAP
+} from '../utils/constants'
+import { transData } from '../utils/tree'
+
+const SET_FUNCTION_LIST = 'setFunctionList'
+const SET_LOGIN_INFO = 'setLoginInfo'
+const SET_FUNCTION_TREE = 'setFunctionTree'
+const SET_SUB_LIST = 'setSubList'
+const SET_PAGE_LIST = 'setPageList'
 
 const PREFIX = 'sako-frame'
 export default {
@@ -336,7 +296,17 @@ export default {
     Tooltip,
     Content,
     Poptip,
-    Badge
+    Badge,
+    Form,
+    FormItem,
+    Select,
+    Option,
+    Tag
+  },
+  filters: {
+    format(fmt, date) {
+      return format(fmt, new Date(date))
+    }
   },
   props: {
     // logo 路由
@@ -378,6 +348,9 @@ export default {
     },
     loginInfo: {
       type: Object
+    },
+    token: {
+      type: String
     }
   },
   data() {
@@ -388,7 +361,11 @@ export default {
       menuOpenNames: [],
       menuActiveName: null,
       tasks: [],
-      totalTask: 0
+      totalTask: 0,
+      notices: [],
+      totalNotice: 0,
+      oparator: '',
+      customizedMenu: []
     }
   },
   computed: {
@@ -415,6 +392,7 @@ export default {
     }
   },
   mounted() {
+    this.oparator = this.loginInfo && this.loginInfo.org && this.loginInfo.org.orgId
     this.topActiveName =
       (this.functionTree && this.functionTree.length && this.functionTree[0].functionName) || ''
     this.menuOpenNames = [
@@ -428,8 +406,58 @@ export default {
         this.subList[0].childFuncList[0].functionName) ||
       ''
     this.$_getTask()
+    this.$_getNotice()
+    this.$_getCustomizedMenu()
+
+    /* NOTE: 增加websocket */
+    window.client = null
+    window.wsTimer = null
+    // eslint-disable-next-line
+    window.websocketConnect = name => {
+      const _path = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${
+        /localhost/.test(location.host) ? '192.168.51.193' : location.host
+      }/socket/websocket`
+      const ws = new WebSocket(_path)
+      ws.onopen = function() {
+        console.log(_path)
+        ws.send(`${name}workflowNotice`)
+        ws.send(`${name}messageCenterNotice`)
+        window.wsTimer = setInterval(() => {
+          ws.send('heartbeat')
+        }, 30000)
+      }
+      ws.onmessage = function(e) {
+        console.log('工作台待办消息广播成功', e)
+        if (JSON.parse(e.data).sid == `${name}workflowNotice`) this.$_getTask()
+        if (JSON.parse(e.data).sid == `${name}messageCenterNotice`) this.$_getNotice()
+      }
+      ws.onclose = function(e) {
+        console.log('工作台待办消息socket关闭', e)
+      }
+      return ws
+    }
+    // eslint-disable-next-line
+    window.websocketDisconnect = client => {
+      if (client) {
+        client.close()
+        clearInterval(window.wsTimer)
+      }
+    }
+
+    if (!window.client)
+      window.client = window.websocketConnect(
+        this.loginInfo &&
+          this.loginInfo.user &&
+          (this.loginInfo.user.userName || this.loginInfo.user.realName)
+      )
   },
   methods: {
+    // $_checkSoap () {
+    //   let token = this.token || localStore.get(APP_TOKEN)
+    //   if (!token) return
+    //   const soap = localStore.get(APP_SOAP)
+    //   const timer =  new Date().getTime()
+    // },
     $_onClickLogoNavTo() {
       this.$router.push(this.logoRouter)
     },
@@ -444,11 +472,15 @@ export default {
           if (result && result.data && result.data.success) {
             this.singleSpa.navigateToUrl('/saas-etcloud-login')
           }
+          window.websocketDisconnect(window.client)
+          this.$_clearStorage()
+          localStore.remove(APP_TOKEN)
+          localStorage.removeItem('id_token')
         })
         .catch(error => {
           Message.error((error && error.message) || error)
         })
-      this.$emit('frame-logout', {
+      this.$emit('on-frame-logout', {
         loginInfo: this.loginInfo
       })
     },
@@ -469,6 +501,300 @@ export default {
           .catch(error => {
             Message.error((error && error.message) || error)
           })
+    },
+    $_onDesktopItem(item) {
+      this.$emit('on-frame-desktop-item', item)
+    },
+    $_getNotice() {
+      this.instance &&
+        this.instance.loginService &&
+        this.instance.loginService
+          .getNotice()
+          .then(result => {
+            if (result && result.data) {
+              this.notices = (result && result.data && result.data.length) || []
+              this.totalNotice = 0
+              this.notices.forEach(element => {
+                this.totalNotice += element.noticeCount
+              })
+            }
+          })
+          .catch(error => {
+            Message.error((error && error.message) || error)
+          })
+    },
+    $_onNoticeItem(item) {
+      this.$emit('on-frame-notice-item', item)
+    },
+    $_onChangePassword() {
+      this.$emit('on-frame-change-password', this.loginInfo)
+    },
+    async $_onChangeOparator(oparatorId) {
+      // NOTE: 需要更新登录信息
+      this.$emit('on-frame-change-oparator', oparatorId)
+      /**
+       * 0. 更改当前机构信息
+       * 1. 清空缓存信息
+       * 2. 更新菜单
+       * 3. 重新更新个人信息
+       * 4. 做页面重定位
+       * 5. 更新常用菜单、工作台、消息中心
+       */
+      try {
+        const orgResult = await this.$_changeOrg(oparatorId)
+        if (orgResult && orgResult.data && orgResult.data.success) Message.success('切换机构成功')
+        this.$_clearStorage()
+        const loginInfo = await this.$_getLoginInfo()
+        if (loginInfo && loginInfo.data && loginInfo.data.value) {
+          localStore.set(APP_LOGIN_INFO, loginInfo.data.value)
+          localStorage.setItem('user_info', JSON.stringify(loginInfo.data.value))
+        }
+        const functionList = await this.$_getFunctionList()
+        if (functionList && functionList.data && functionList.data.value) {
+          localStore.set(APP_FUNCTION_LIST, functionList.data.value)
+          localStorage.setItem('function_list', JSON.stringify(functionList.data.value))
+        }
+        // NOTE: 同步到数据总线中去
+        this.$_setLocalInfo(functionList.data.value, loginInfo.data.value)
+
+        const r = this.$_initSystem()
+        if (
+          loginInfo &&
+          loginInfo.data &&
+          loginInfo.data.value &&
+          loginInfo.data.value.user &&
+          loginInfo.data.value.user.userType === 0
+        ) {
+          // 跳转到 home.admin 由该模块决定重定向到用户所在页面
+          this.singleSpa.navigateToUrl('/saas-etcloud-permission')
+        } else {
+          if (!r) {
+            Message.error('该机构没有任何操作权限，请先联系管理员添加权限')
+            this.singleSpa.navigateToUrl('/saas-etcloud-login')
+          }
+          // else {
+          // window.location.reload()
+          // const r = operationService.init()
+          // if (r[0].defaultUrl) {
+          //   $state.go(
+          //     r[0].defaultUrl,
+          //     {},
+          //     {
+          //       reload: true
+          //     }
+          //   )
+          // } else {
+          //   $state.go(
+          //     r[0].url,
+          //     {},
+          //     {
+          //       reload: true
+          //     }
+          //   )
+          // }
+          // }
+        }
+        this.$_getCustomizedMenu()
+        this.$_getTask()
+        this.$_getNotice()
+        // FIXME: 查询是否插盘
+      } catch (error) {
+        Message.error((error && error.message) || error)
+      }
+    },
+    $_changeOrg(oparatorId) {
+      return (
+        this.instance &&
+        this.instance.loginService &&
+        this.instance.loginService.changeOrg({
+          data: {
+            orgId: oparatorId
+          },
+          params: {
+            orgId: oparatorId
+          }
+        })
+      )
+    },
+    $_getLoginInfo() {
+      return (
+        this.instance && this.instance.loginService && this.instance.loginService.getLoginInfo()
+      )
+    },
+    $_getFunctionList() {
+      return (
+        this.instance && this.instance.loginService && this.instance.loginService.getFunctionList()
+      )
+    },
+    $_setLocalInfo(functionList = {}, loginInfo = {}) {
+      // NOTE: 同步到APP数据总线
+      // eslint-disable-next-line
+      globalEventStore && globalEventStore.commit(`${APP_NAMESPACE}/${SET_FUNCTION_LIST}`, functionList)
+      // eslint-disable-next-line
+      globalEventStore && globalEventStore.commit(`${APP_NAMESPACE}/${SET_LOGIN_INFO}`, loginInfo)
+    },
+    $_initSystem() {
+      let loginInfo = localStore.get(APP_LOGIN_INFO)
+      let functionList = localStore.get(APP_FUNCTION_LIST)
+      if (!functionList.length) return false
+      // 生成页面权限列表
+      let pageList = this.$_generatePageRightList(loginInfo, functionList)
+
+      localStore.set(APP_PAGE_LIST, pageList)
+      localStorage.setItem('page_list', JSON.stringify(pageList))
+
+      // NOTE: 同步到APP数据总线
+      // eslint-disable-next-line
+      globalEventStore && globalEventStore.commit(`${APP_NAMESPACE}/${SET_PAGE_LIST}`, pageList)
+
+      // NOTE: 销方不存在，则不显示金税盘管理模块
+      if (!loginInfo.sale) {
+        let index = functionList.findIndex(item => item.treeLevelCode === '0_2_90_93')
+        functionList = functionList.splice(index, 1)
+      }
+
+      let functionTree = transData(
+        functionList,
+        'functionId',
+        'parentFunctionId',
+        'childFuncList',
+        'functionId'
+      )
+
+      functionTree =
+        (functionTree.length &&
+          functionTree.map(item => {
+            const defaultRouter = {}
+            if (item.childFuncList !== null && item.childFuncList[0].childFuncList !== null) {
+              defaultRouter.defaultUrl = item.childFuncList[0].childFuncList[0].url
+            }
+            return Object.assign({}, defaultRouter, item)
+          })) ||
+        []
+      let structureDate = functionTree
+      let subNav = (functionTree.length && functionTree[0].childFuncList) || []
+
+      localStore.set(APP_SUB_LIST, subNav)
+      localStorage.setItem('sub-nav', JSON.stringify(subNav))
+
+      localStore.set(APP_FUNCTION_LIST, functionList)
+      localStore.set(APP_FUNCTION_TREE, structureDate)
+
+      // NOTE: 同步到APP数据总线
+      // eslint-disable-next-line
+      globalEventStore && globalEventStore.commit(`${APP_NAMESPACE}/${SET_FUNCTION_TREE}`, structureDate)
+      // eslint-disable-next-line
+      globalEventStore && globalEventStore.commit(`${APP_NAMESPACE}/${SET_SUB_LIST}`, subNav)
+
+      localStorage.setItem('function_tree', JSON.stringify(structureDate))
+      localStorage.setItem('function_list', JSON.stringify(functionList))
+
+      return structureDate
+    },
+    $_generatePageRightList(loginInfo, functionList) {
+      const userType = loginInfo.user.userType
+      // 所有账号都有的权限
+      let pageList = [
+        'index.list',
+        'index.changeInitPw',
+        'index.menuset',
+        'message.list',
+        'workspace.list',
+        'workspace.item',
+        'workspace.item.detail',
+        'workspace.item.opened',
+        'workspace.item.bill',
+        'workspace.item.redinfo',
+        'workspace.blue',
+        'workspace.item.management',
+        'workspace.item.vehicle',
+        'workspace.item.reiburseInfo',
+        'workspace.item.reopenVehicleApprove',
+        'workspace.item.roll',
+        'outputManage.FOManage.eleInvoice.printView'
+      ]
+      if (userType == 0) {
+        pageList.push(
+          'initStep',
+          'initStep.initStepOne',
+          'initStep.initStepTwo',
+          'initStep.initStepThree',
+          'initStep.initStepFour'
+        )
+      }
+      // NOTE: 暂时用于区分版本用
+      // if (IS_PROVIDER) pageList = ['help.list', 'help.changeInitPw', 'help.initChangePW']
+      functionList.forEach(functionItem => {
+        if (functionItem.url) {
+          pageList.push(functionItem.url)
+        }
+        if (functionItem.remark && functionItem.remark !== 'null') {
+          pageList = pageList.concat(functionItem.remark.split(','))
+        }
+      })
+      return pageList
+    },
+    $_clearStorage() {
+      localStore.remove(APP_LOGIN_INFO)
+      localStore.remove(APP_FUNCTION_LIST)
+      localStore.remove(APP_FUNCTION_TREE)
+      localStore.remove(APP_PAGE_LIST)
+      localStore.remove(APP_SUB_LIST)
+
+      // 删除angular中存储
+      localStorage.removeItem('user_info')
+      localStorage.removeItem('function_tree')
+      localStorage.removeItem('page_list')
+      localStorage.removeItem('function_list')
+      localStorage.removeItem('sub-nav')
+    },
+    $_getCustomizedMenu() {
+      this.instance &&
+        this.instance.loginService &&
+        this.instance.loginService
+          .getCustomizedMenu({
+            params: {
+              type: 2
+            }
+          })
+          .then(result => {
+            if (result && result.data && result.data.success) {
+              this.customizedMenu = result && result.data && JSON.parse(result.data.value)
+            }
+          })
+          .catch(error => {
+            Message.error((error && error.message) || error)
+          })
+    },
+    $_setTagColor(index) {
+      let color = 'primary'
+      switch (index % 4) {
+        case 0:
+          color = 'primary'
+          break
+        case 1:
+          color = 'success'
+          break
+        case 2:
+          color = 'error'
+          break
+        case 3:
+          color = 'warning'
+          break
+        case 4:
+          color = 'orange'
+          break
+        default:
+          color = 'primary'
+          break
+      }
+      return color
+    },
+    $_onSetCustomizedMenu() {
+      this.$emit('on-frame-set-customized-menu')
+    },
+    $_onNavToMenu(item) {
+      this.$emit('on-frame-customized-menu', item)
     }
   }
 }
