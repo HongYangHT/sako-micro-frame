@@ -2,7 +2,12 @@
   <div :class="prefix">
     <Layout>
       <Header :class="prefix + '__header'">
-        <Menu mode="horizontal" theme="primary" :active-name="topActiveName">
+        <Menu
+          mode="horizontal"
+          theme="primary"
+          :active-name="topActiveName"
+          @on-select="$_onSelectTopMenu"
+        >
           <div :class="logoScale" @click="$_onClickLogoNavTo">
             <img :src="logoSrc" :class="imgScale" />
           </div>
@@ -200,6 +205,7 @@
             accordion
             :open-names="menuOpenNames"
             :class="menuitemClasses"
+            @on-select="$_onSelectleftMenu"
           >
             <template v-for="item in subList">
               <Submenu
@@ -1078,7 +1084,10 @@ export default {
           window.websocketDisconnect(window.client)
           this.$_clearStorage()
           localStore.remove(APP_TOKEN)
+          localStore.remove(APP_SOAP)
+          localStore.remove(APP_SOAP_RESPONSE)
           localStorage.removeItem('id_token')
+          localStorage.remove('soap')
         })
         .catch(error => {
           this.$Message.error((error && error.message) || error)
@@ -1399,6 +1408,20 @@ export default {
     },
     $_onNavToMenu(item) {
       this.$emit('on-frame-customized-menu', item)
+    },
+    $_onSelectTopMenu(functionName) {
+      let item = this.functionTree.find(item => item.functionName === functionName)
+      this.$emit('on-frame-top-menu-select', {
+        functionName,
+        item
+      })
+    },
+    $_onSelectleftMenu(functionName) {
+      let item = this.subList.find(item => item.functionName === functionName)
+      this.$emit('on-frame-left-menu-select', {
+        functionName,
+        item
+      })
     }
   }
 }
