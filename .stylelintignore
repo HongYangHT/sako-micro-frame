@@ -8,4 +8,4 @@
 *.ttf
 *.woff
 
-.stylelintcache
+/.stylelintcache
