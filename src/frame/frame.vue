@@ -1087,7 +1087,7 @@ export default {
           localStore.remove(APP_SOAP)
           localStore.remove(APP_SOAP_RESPONSE)
           localStorage.removeItem('id_token')
-          localStorage.remove('soap')
+          localStorage.removeItem('soap')
         })
         .catch(error => {
           this.$Message.error((error && error.message) || error)
