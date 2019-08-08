@@ -1,6 +1,6 @@
 {
   "name": "sako-micro-frame",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "webpack config for vuejs",
   "main": "lib/app.js",
   "scripts": {
